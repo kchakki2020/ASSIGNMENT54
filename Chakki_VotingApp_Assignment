@@ -234,3 +234,41 @@ b. For close to 35s saw "No votes yet" on the result pod.
 c. Both result & work got restarted as well. Since DB is restarted better for app accessing the DB to restart if dynamic updates are supported
 d. But finally, everything back to normal
 10). Result pod came up fine automatically without any issues
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE     IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-6dlpz        1/1     Running   0          71s     192.168.76.114   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          39m     192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-tmhpt   1/1     Running   1          7m19s   192.168.76.113   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          20m     192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running   1          13m     192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# pwd
+/root/chakki-voting-app/k8s-specifications
+[root@ip-172-31-35-118 k8s-specifications]# kubectel get svc
+-bash: kubectel: command not found
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get svc
+NAME     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+db       ClusterIP   10.97.213.178   <none>        5432/TCP         54m
+redis    ClusterIP   10.110.93.0     <none>        6379/TCP         54m
+result   NodePort    10.97.60.180    <none>        5001:31003/TCP   54m
+vote     NodePort    10.109.56.241   <none>        5000:31002/TCP   54m
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get deploy
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+db       1/1     1            1           54m
+redis    1/1     1            1           54m
+result   1/1     1            1           54m
+vote     1/1     1            1           54m
+worker   1/1     1            1           54m
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get ep
+NAME     ENDPOINTS             AGE
+db       192.168.76.114:5432   54m
+redis    192.168.76.87:6379    54m
+result   192.168.76.113:80     54m
+vote     192.168.76.110:80     54m
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get rs
+NAME                DESIRED   CURRENT   READY   AGE
+db-b54cd94f4        1         1         1       54m
+redis-868d64d78     1         1         1       54m
+result-5d57b59f4b   1         1         1       54m
+vote-94849dc97      1         1         1       54m
+worker-dd46d7584    1         1         1       54m
+[root@ip-172-31-35-118 k8s-specifications]#
