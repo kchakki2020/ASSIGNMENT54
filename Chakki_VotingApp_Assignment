@@ -104,4 +104,133 @@ worker   1/1     1            1           2m24s
 Doubt: why vote & worker are not in ready state?
 4). From browser for vote http://54.254.236.160:31002/ Refer to vote pic
 5). From browser for result http://54.254.236.160:31003/ Refer to result pic 
-
+Observation: after starting the vote & result apps from the browser both vote & worker showing ready as 1
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get rs
+NAME                DESIRED   CURRENT   READY   AGE
+db-b54cd94f4        1         1         1       14m
+redis-868d64d78     1         1         1       14m
+result-5d57b59f4b   1         1         1       14m
+vote-94849dc97      1         1         1       14m <== back to business
+worker-dd46d7584    1         1         1       14m <== back to business
+6). Deleting vote pod
+Currently processed by container ID vote-94849dc97-cb2n7
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          17m   192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          17m   192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running   0          17m   192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-cb2n7      1/1     Running   0          17m   192.168.76.109   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-xvwcc    1/1     Running   0          17m   192.168.76.112   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl delete pod vote-94849dc97-cb2n7
+pod "vote-94849dc97-cb2n7" deleted
+^C
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS        RESTARTS   AGE   IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running       0          19m   192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running       0          19m   192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running       0          19m   192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-cb2n7      0/1     Terminating   0          19m   192.168.76.109   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running       0          6s    192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-xvwcc    1/1     Running       0          19m   192.168.76.112   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          20m   192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          20m   192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running   0          20m   192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          37s   192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-xvwcc    1/1     Running   0          20m   192.168.76.112   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+Observations:
+1. New vote pod (vote-94849dc97-wmcps) got spawned
+2. Observed a temporary glitch on the browser but with few second everything is working fine on both vote & result browsers. Able to vote and see changed result
+7). Delete worker pod
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          20m   192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          20m   192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running   0          20m   192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          37s   192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-xvwcc    1/1     Running   0          20m   192.168.76.112   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl delete pod worker-dd46d7584-xvwcc
+pod "worker-dd46d7584-xvwcc" deleted
+^C
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS        RESTARTS   AGE     IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running       0          25m     192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running       0          25m     192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running       0          25m     192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running       0          6m25s   192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running       0          4s      192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-xvwcc    0/1     Terminating   0          25m     192.168.76.112   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          26m    192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          26m    192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running   0          26m    192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          7m1s   192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running   0          40s    192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]#
+Observations:
+a. new worker (worker-dd46d7584-7jz52) pod got spawned
+b. But no glitch observed at vote or result app, at least to naked eye
+8). Delete result pod
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          31m    192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          31m    192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   1/1     Running   0          31m    192.168.76.108   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          12m    192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running   0          6m8s   192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl delete pod result-5d57b59f4b-m9q7s
+pod "result-5d57b59f4b-m9q7s" deleted
+^C
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS        RESTARTS   AGE     IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running       0          32m     192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running       0          32m     192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   0/1     Terminating   0          32m     <none>           ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-tmhpt   1/1     Running       0          2s      192.168.76.113   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running       0          12m     192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running       0          6m25s   192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          32m    192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          32m    192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-tmhpt   1/1     Running   0          46s    192.168.76.113   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          13m    192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running   0          7m9s   192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+Observations:
+a. new result (result-5d57b59f4b-tmhpt) pod got spawned
+b. Even now no glitch observed at vote or result app, at least to naked eye
+c. Mistakely deleted result pod. Since I was the only one voting, did not miss the data. Now started vote app in chrome as well to get two votes
+9). Deleting DB pod now
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Running   0          32m    192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          32m    192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-tmhpt   1/1     Running   0          46s    192.168.76.113   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          13m    192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running   0          7m9s   192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl delete pod db-b54cd94f4-4qlsv
+pod "db-b54cd94f4-4qlsv" deleted
+^C
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS        RESTARTS   AGE     IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        1/1     Terminating   0          38m     192.168.76.95    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+db-b54cd94f4-6dlpz        1/1     Running       0          3s      192.168.76.114   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running       0          38m     192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-tmhpt   1/1     Running       0          6m11s   192.168.76.113   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running       0          18m     192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running       0          12m     192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-6dlpz        1/1     Running   0          60s    192.168.76.114   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     1/1     Running   0          39m    192.168.76.87    ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-tmhpt   1/1     Running   1          7m8s   192.168.76.113   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-wmcps      1/1     Running   0          19m    192.168.76.110   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-7jz52    1/1     Running   1          13m    192.168.76.111   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+Observations:
+a. new DB (db-b54cd94f4-6dlpz) pod got spawned
+b. For close to 35s saw "No votes yet" on the result pod.
+c. Both result & work got restarted as well. Since DB is restarted better for app accessing the DB to restart if dynamic updates are supported
+d. But finally, everything back to normal
+10). Result pod came up fine automatically without any issues
