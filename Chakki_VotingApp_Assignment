@@ -1,3 +1,104 @@
 27Jan @ 7:20AM
 Assignment done on following worker:
 Chakravarthy k	54.254.236.160	172.31.35.118	Worker
+
+1). Changing port # in vote-service.yaml & result-service.yaml to 31002 & 31003 respectively
+[root@ip-172-31-35-118 k8s-specifications]# grep 31000 *.yaml
+vote-service.yaml:    nodePort: 31000
+[root@ip-172-31-35-118 k8s-specifications]# grep 31001 *.yaml
+result-service.yaml:    nodePort: 31001
+[root@ip-172-31-35-118 k8s-specifications]# vim vote-service.yaml
+[root@ip-172-31-35-118 k8s-specifications]# vim result-service.yaml
+[root@ip-172-31-35-118 k8s-specifications]# kubectl apply ^C
+[root@ip-172-31-35-118 k8s-specifications]# cat vote-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vote
+spec:
+  type: NodePort
+  ports:
+  - name: "vote-service"
+    port: 5000
+    targetPort: 80
+    nodePort: 31002 <== modified here
+  selector:
+    app: vote
+
+[root@ip-172-31-35-118 k8s-specifications]# cat result-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: result
+spec:
+  type: NodePort
+  ports:
+  - name: "result-service"
+    port: 5001
+    targetPort: 80
+    nodePort: 31003 <== modified here
+  selector:
+    app: result
+2). All clean up done
+[root@ip-172-31-35-118 k8s-specifications]# pwd
+/root/chakki-voting-app/k8s-specifications
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pods
+No resources found in chakki namespace.
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get svc
+No resources found in chakki namespace.
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get deploy
+No resources found in chakki namespace.
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get rs
+No resources found in chakki namespace.
+[root@ip-172-31-35-118 k8s-specifications]#
+
+3). Applying all the changes
+[root@ip-172-31-35-118 k8s-specifications]# ls
+db-deployment.yaml  redis-deployment.yaml  result-deployment.yaml  vote-deployment.yaml  worker-deployment.yaml
+db-service.yaml     redis-service.yaml     result-service.yaml     vote-service.yaml
+[root@ip-172-31-35-118 k8s-specifications]# kubectl apply -f .
+deployment.apps/db created
+service/db created
+deployment.apps/redis created
+service/redis created
+deployment.apps/result created
+service/result created
+deployment.apps/vote created
+service/vote created
+deployment.apps/worker created
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get pod -o wide
+NAME                      READY   STATUS              RESTARTS   AGE   IP       NODE                                               NOMINATED NODE   READINESS GATES
+db-b54cd94f4-4qlsv        0/1     ContainerCreating   0          14s   <none>   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+redis-868d64d78-shb9n     0/1     ContainerCreating   0          14s   <none>   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+result-5d57b59f4b-m9q7s   0/1     ContainerCreating   0          14s   <none>   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+vote-94849dc97-cb2n7      0/1     ContainerCreating   0          14s   <none>   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+worker-dd46d7584-xvwcc    0/1     ContainerCreating   0          13s   <none>   ip-172-31-35-118.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get svc
+NAME     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+db       ClusterIP   10.97.213.178   <none>        5432/TCP         23s
+redis    ClusterIP   10.110.93.0     <none>        6379/TCP         23s
+result   NodePort    10.97.60.180    <none>        5001:31003/TCP   23s
+vote     NodePort    10.109.56.241   <none>        5000:31002/TCP   22s
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get rs
+NAME                DESIRED   CURRENT   READY   AGE
+db-b54cd94f4        1         1         1       38s
+redis-868d64d78     1         1         1       38s
+result-5d57b59f4b   1         1         1       38s
+vote-94849dc97      1         1         0       38s <== not in ready state
+worker-dd46d7584    1         1         0       37s <== same as above
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get ep
+NAME     ENDPOINTS            AGE
+db       192.168.76.95:5432   73s
+redis    192.168.76.87:6379   73s
+result   192.168.76.108:80    73s
+vote     192.168.76.109:80    72s
+[root@ip-172-31-35-118 k8s-specifications]# kubectl get deploy
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+db       1/1     1            1           2m25s
+redis    1/1     1            1           2m25s
+result   1/1     1            1           2m25s
+vote     1/1     1            1           2m25s
+worker   1/1     1            1           2m24s
+[root@ip-172-31-35-118 k8s-specifications]#
+
+Doubt: why vote & worker are not in ready state?
